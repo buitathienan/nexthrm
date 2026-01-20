@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  moduleFormat    = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERN
+  TERMINATED
+}
+
+
+model Employee {
+  id Int @id @default(autoincrement())
+  name String 
+  date_of_birth DateTime
+  passport String
+  phone String
+  address String?
+  employmentType EmploymentType @default(FULL_TIME)
+  createdAt DateTime @default(now())
+  contractEndDate DateTime?
+  dateOfRetirement DateTime
+
+  departmentId Int?
+  department Department? @relation(fields: [departmentId], references: [id])
+  titleId Int
+  title Title @relation(fields: [titleId], references: [id])
+  managerId Int?
+  manager Employee? @relation("ManagerToDirects", fields: [managerId], references: [id])
+  directReports Employee[]      @relation("ManagerToDirects")
+  user User?
+}
+
+
+
+model Title {
+  id Int @id @default(autoincrement())
+  title String // "Senior Developer"
+  employees Employee[]
+}
+
+model Department {
+  id Int @id @default(autoincrement())
+  name String @unique
+  managerId Int?
+  employees Employee[]
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique
+  username String?
+  password String
+  employeeId Int @unique
+  employee Employee @relation(fields: [employeeId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Role {
+  id Int @id @default(autoincrement())
+  name String
+  status Boolean @default(true)
+}
