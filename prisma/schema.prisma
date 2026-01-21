@@ -22,44 +22,66 @@ enum EmploymentType {
   TERMINATED
 }
 
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum LeaveStatus {
+  APPROVED
+  PENDING
+  REJECTED
+  CANCELLED
+}
+
 
 model Employee {
   id Int @id @default(autoincrement())
-  name String 
-  date_of_birth DateTime
-  passport String
-  phone String
+  firstName String 
+  lastName String 
+  dateOfBirth DateTime
+  gender Gender
+  image String?
+  passport String?
+  phone String?
   address String?
   employmentType EmploymentType @default(FULL_TIME)
   createdAt DateTime @default(now())
   contractEndDate DateTime?
-  dateOfRetirement DateTime
+  dateOfRetirement DateTime?
+  ctc Decimal? @db.Decimal(10,2) @default(0) // Cost to Company
 
   departmentId Int?
-  department Department? @relation(fields: [departmentId], references: [id])
-  titleId Int
-  title Title @relation(fields: [titleId], references: [id])
+  department Department? @relation("DepartmentEmployees",fields: [departmentId], references: [id])
+  designationId Int
+  designation Designation @relation(fields: [designationId], references: [id])
   managerId Int?
   manager Employee? @relation("ManagerToDirects", fields: [managerId], references: [id])
   directReports Employee[]      @relation("ManagerToDirects")
   user User?
-}
-
-
-
-model Title {
-  id Int @id @default(autoincrement())
-  title String // "Senior Developer"
-  employees Employee[]
+  leaderDepartment Department?
+  leaves Leave[]
+  leaveApproved Leave[] @relation("LeaveApprover")
+  leaveAllocations LeaveAllocation[]
 }
 
 model Department {
   id Int @id @default(autoincrement())
   name String @unique
-  managerId Int?
-  employees Employee[]
+  employees Employee[] @relation("DepartmentEmployees")
+  leaderId Int? @unique
+  leader Employee? @relation(fields: [leaderId], references: [id])
   createdAt DateTime @default(now())
+  status Boolean @default(true)
 }
+
+
+model Designation {
+  id Int @id @default(autoincrement())
+  title String // "Senior Developer"
+  employees Employee[]
+}
+
 
 model User {
   id Int @id @default(autoincrement())
@@ -68,11 +90,52 @@ model User {
   password String
   employeeId Int @unique
   employee Employee @relation(fields: [employeeId], references: [id])
+  roleId Int
+  role Role @relation(fields: [roleId], references: [id])
   createdAt DateTime @default(now())
 }
 
 model Role {
   id Int @id @default(autoincrement())
   name String
+  users User[]
   status Boolean @default(true)
 }
+
+
+model Leave {
+  id Int @id @default(autoincrement())
+  employee Employee @relation(fields: [employeeId], references: [id])
+  employeeId Int
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+  leaveTypeId Int
+  reason String?
+  fromDate DateTime
+  toDate DateTime
+  isHalfDay Boolean?
+  halfDayDate DateTime?
+  approver Employee? @relation("LeaveApprover", fields: [approverId], references: [id])
+  approverId Int?
+  status LeaveStatus @default(PENDING)
+}
+
+model LeaveType {
+  id Int @id @default(autoincrement())
+  name String
+  leaves Leave[]
+  allocations LeaveAllocation[]
+  createdAt DateTime @default(now())
+}
+
+model LeaveAllocation {
+  id Int @id @default(autoincrement())
+  fromDate DateTime
+  toDate DateTime
+  newLeavesAllocated Int 
+  employeeId  Int
+  employee Employee @relation(fields: [employeeId], references: [id])
+  leaveTypeId Int
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+}
+
+// Todo - Payroll
