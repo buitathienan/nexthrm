@@ -34,6 +34,19 @@ enum LeaveStatus {
   CANCELLED
 }
 
+enum SalaryComponentType {
+  EARNING
+  DEDUCTION
+}
+
+enum PayrollFrequency {
+  MONTHLY // thang
+  WEEKLY // tuan
+  DAILY // ngay
+  BIMONTHLY // 2 thang 1 lan
+  FORNIGHTLY // 2 tuan 1 lan
+}
+
 
 model Employee {
   id Int @id @default(autoincrement())
@@ -139,3 +152,29 @@ model LeaveAllocation {
 }
 
 // Todo - Payroll
+model SalaryComponent {
+  id Int @id @default(autoincrement())
+  name String
+  isTaxable Boolean @default(false)
+  type SalaryComponentType 
+  description String?
+  status Boolean @default(true)
+  salaryStructure SalaryStructureOnSalaryComponent[]
+}
+
+model SalaryStructure {
+  id Int @id @default(autoincrement())
+  name String
+  frequency PayrollFrequency @default(MONTHLY)
+  salaryComponent SalaryStructureOnSalaryComponent[]
+}
+
+model SalaryStructureOnSalaryComponent {
+  salaryComponentId Int 
+  salaryComponent SalaryComponent @relation(fields: [salaryComponentId], references: [id])
+  salaryStructureId Int
+  salaryStructure SalaryStructure @relation(fields: [salaryStructureId], references: [id]) 
+    amount Decimal? @db.Decimal(10,2) @default(0)
+
+ @@id([salaryComponentId, salaryStructureId])
+}
