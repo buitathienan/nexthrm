@@ -47,6 +47,13 @@ enum PayrollFrequency {
   FORNIGHTLY // 2 tuan 1 lan
 }
 
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  EARLY_LEAVE
+  ABSENT      // Tự động đánh nếu hết ngày mà không thấy check-in
+}
+
 
 model Employee {
   id Int @id @default(autoincrement())
@@ -73,8 +80,8 @@ model Employee {
   directReports Employee[]      @relation("ManagerToDirects")
   user User?
   leaderDepartment Department?
-  leaves Leave[]
-  leaveApproved Leave[] @relation("LeaveApprover")
+  leaves LeaveRequest[]
+  leaveApproved LeaveRequest[] @relation("LeaveApprover")
   leaveAllocations LeaveAllocation[]
   shiftAssignment ShiftAssignment[]
 }
@@ -117,7 +124,7 @@ model Role {
 }
 
 
-model Leave {
+model LeaveRequest {
   id Int @id @default(autoincrement())
   employee Employee @relation(fields: [employeeId], references: [id])
   employeeId Int
@@ -136,7 +143,7 @@ model Leave {
 model LeaveType {
   id Int @id @default(autoincrement())
   name String
-  leaves Leave[]
+  leaves LeaveRequest[]
   allocations LeaveAllocation[]
   createdAt DateTime @default(now())
 }
@@ -222,13 +229,6 @@ model Attendance {
   lateDuration      Int       @default(0) // Số phút đi muộn
   earlyLeaveDuration Int      @default(0) // Số phút về sớm
   status            AttendanceStatus @default(PRESENT)
-}
-
-enum AttendanceStatus {
-  PRESENT
-  LATE
-  EARLY_LEAVE
-  ABSENT      // Tự động đánh nếu hết ngày mà không thấy check-in
 }
 
 
