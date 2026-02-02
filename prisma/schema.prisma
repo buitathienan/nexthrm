@@ -152,7 +152,7 @@ model LeaveAllocation {
   id Int @id @default(autoincrement())
   fromDate DateTime
   toDate DateTime
-  newLeavesAllocated Int 
+  balance Int 
   employeeId  Int
   employee Employee @relation(fields: [employeeId], references: [id])
   leaveTypeId Int
@@ -205,7 +205,7 @@ model ShiftAssignment {
   shift ShiftType @relation(fields: [shiftId], references: [id]) 
   employeeId Int 
   employee Employee @relation(fields: [employeeId], references: [id])
-  attendance Attendance[]
+  attendance Attendance?
   status Boolean @default(true)
 }
 
