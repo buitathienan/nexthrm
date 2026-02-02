@@ -76,7 +76,7 @@ model Employee {
   leaves Leave[]
   leaveApproved Leave[] @relation("LeaveApprover")
   leaveAllocations LeaveAllocation[]
-  shiftAssignment ShiftAssignment?
+  shiftAssignment ShiftAssignment[]
 }
 
 model Department {
@@ -187,16 +187,48 @@ model ShiftType {
   name String
   startTime String 
   endTime String
+  shiftAssignment ShiftAssignment[]
 }
 
 model ShiftAssignment {
   id Int @id @default(autoincrement())
   name String
-  startDate DateTime
-  endDate DateTime?
-  employeeId Int @unique
+  date DateTime @db.Date
+  shiftId Int
+  shift ShiftType @relation(fields: [shiftId], references: [id]) 
+  employeeId Int 
   employee Employee @relation(fields: [employeeId], references: [id])
+  attendance Attendance[]
   status Boolean @default(true)
+}
+
+model Attendance {
+  id          String   @id @default(uuid())
+  
+  // Liên kết với ca làm việc cụ thể (Để biết đi muộn/về sớm so với ca nào)
+  shiftAssignmentId Int @unique
+  shiftAssignment   ShiftAssignment @relation(fields: [shiftAssignmentId], references: [id])
+
+  // Thời gian thực tế
+  checkInTime       DateTime
+  checkOutTime      DateTime? // Nullable vì lúc check-in chưa có giờ ra
+
+  // Địa điểm/Bằng chứng (Quan trọng để chống gian lận)
+  checkInLocation   Json?     // Lưu {lat: 10.123, long: 106.456, accuracy: 10}
+  checkInImage      String?   // URL ảnh selfie (nếu dùng AI Face Check)
+  deviceInfo        String?   // User-Agent hoặc Device ID
+
+  // Kết quả tính toán (Backend tự tính)
+  lateDuration      Int       @default(0) // Số phút đi muộn
+  earlyLeaveDuration Int      @default(0) // Số phút về sớm
+  status            AttendanceStatus @default(PRESENT)
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  EARLY_LEAVE
+  ABSENT      // Tự động đánh nếu hết ngày mà không thấy check-in
 }
 
 
