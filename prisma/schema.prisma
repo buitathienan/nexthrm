@@ -76,6 +76,7 @@ model Employee {
   leaves Leave[]
   leaveApproved Leave[] @relation("LeaveApprover")
   leaveAllocations LeaveAllocation[]
+  shiftAssignment ShiftAssignment?
 }
 
 model Department {
@@ -174,7 +175,31 @@ model SalaryStructureOnSalaryComponent {
   salaryComponent SalaryComponent @relation(fields: [salaryComponentId], references: [id])
   salaryStructureId Int
   salaryStructure SalaryStructure @relation(fields: [salaryStructureId], references: [id]) 
-    amount Decimal? @db.Decimal(10,2) @default(0)
+  amount Decimal? @db.Decimal(10,2) @default(0)
 
  @@id([salaryComponentId, salaryStructureId])
 }
+
+// todo payroll
+
+model ShiftType {
+  id Int @id @default(autoincrement())
+  name String
+  startTime String 
+  endTime String
+}
+
+model ShiftAssignment {
+  id Int @id @default(autoincrement())
+  name String
+  startDate DateTime
+  endDate DateTime?
+  employeeId Int @unique
+  employee Employee @relation(fields: [employeeId], references: [id])
+  status Boolean @default(true)
+}
+
+
+
+
+
